@@ -83,7 +83,6 @@ namespace GiornaleOnline.Controllers
             {
                 Titolo = articolo.Titolo,
                 Testo = articolo.Testo,
-                AutoreId = articolo.Autore.Id,
                 CategoriaId = articolo.Categoria.Id,
                 DataCreazione = articolo.DataCreazione,
                 DataUltimaModifica = articolo.DataUltimaModifica,
