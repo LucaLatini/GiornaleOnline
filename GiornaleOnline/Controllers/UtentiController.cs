@@ -1,0 +1,75 @@
+﻿using GiornaleOnline.DataContext;
+using GiornaleOnline.Extensions;
+using GiornaleOnline.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace GiornaleOnline.Controllers
+{
+    [Route("[controller]")]
+    [ApiController]
+    public class UtentiController : ControllerBase
+    {
+
+        private readonly ILogger<UtentiController> _logger;
+        private readonly GOContext _dc;
+        //dobbiamo leggere le configurazioni nell'app settings.json
+        private readonly IConfiguration _config;
+
+        public UtentiController(ILogger<UtentiController> logger, GOContext dc, IConfiguration config)
+        {
+            _logger = logger;
+            _dc = dc;
+            _config = config;
+        }
+
+        //dobbiamo creare uhn metodo action di login e uno di registrazione
+
+        [HttpPost("Login")]
+        public async Task<ActionResult<UtenteInfo>> Loging(LoginDTO item)
+        {
+            var utente = await _dc.Utenti.FirstOrDefaultAsync(u => u.Username == item.Username && u.Password == item.Password);
+            if (utente != null) {
+
+                var claims = new List<Claim>
+                {
+                    new Claim(JwtRegisteredClaimNames.Sub , _config["Jwt:Subject"]),
+                    new Claim(JwtRegisteredClaimNames.Jti , Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Iat , DateTime.UtcNow.ToString()),
+                    new Claim("UserId" , utente.Id.ToString()),
+                    new Claim("DisplayName" , utente.Nome!),
+                    new Claim("Username" , utente.Username!)
+                };
+
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+                var signIn = new SigningCredentials(key , SecurityAlgorithms.HmacSha256);
+                var token = new JwtSecurityToken(
+                    _config["Jwt:Issuer"],
+                    _config["Jwt:Audience"],
+                    claims,
+                    expires: DateTime.UtcNow.AddMinutes(_config.GetValue<double>("Jwt:ExpiresInMinutes")),
+                    signingCredentials: signIn
+                    );
+
+                var uf = new UtenteInfo
+                {
+                    Utente = utente.ToUtenteModel(),
+                    Token = new JwtSecurityTokenHandler().WriteToken(token)
+                };
+                return uf;
+
+
+            }
+            else
+            {
+                return BadRequest("credenziali non valide");
+            }
+        }
+    }
+}

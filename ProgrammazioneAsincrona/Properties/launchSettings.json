@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ProgrammazioneAsincrona": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
