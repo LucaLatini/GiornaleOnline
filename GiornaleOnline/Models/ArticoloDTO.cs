@@ -4,8 +4,8 @@ namespace GiornaleOnline.Models
 {
     public class ArticoloDTO
     {
-        [Required(ErrorMessage = "il titolo del campo è obbligatorio")]
-        public int AutoreId { get; set; }
+        //[Required(ErrorMessage = "il titolo del campo è obbligatorio")]
+        //public int AutoreId { get; set; }
 
         public int CategoriaId { get; set; }
 

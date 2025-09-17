@@ -35,6 +35,29 @@ namespace GiornaleOnline.Controllers
 
             return Ok(data);
         }
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ArticoloModel>>> GetMiei()
+        {
+
+            // this è il nostor controller ma sicoome dervia da controller base allora ha anche una prprietà user evinta dalla richiesta http 
+            //e possima cerca di esso i claim , nel nostro user avevamo messo che aveva i claim UserId
+            var userIdClaim = this.User.FindFirst("UserId");
+            if (userIdClaim == null)
+            {
+                return BadRequest();
+            }
+            var userId = Convert.ToInt32(userIdClaim.Value);
+
+            var data = await _dc.Articoli
+                .Include(a => a.Categoria)
+                .Include(a => a.Autore)
+                .Where(a => a.Autore!.Id == userId)
+                .Select(s => s.ToArticoloModel())
+                .ToListAsync();
+
+            return Ok(data);
+        }
+ 
 
         [Authorize] // in questo modo se lo metto solo sul metodo proteggo solo esso se lo metto prima del controller proteggo tutto
         [HttpGet("{id}")] //nelle graffe specifico i parametri se non trovo nessun id eseguo la funzione sopra qualsiasi cosa ci sia dopo Categorie/ diventa argomento della funzione
@@ -62,7 +85,12 @@ namespace GiornaleOnline.Controllers
             {
                 return BadRequest();
             }
-            var userId = Convert.ToInt32(userIdClaim);
+            var userId = Convert.ToInt32(userIdClaim.Value);
+
+
+
+
+
             var articolo = await _dc.Articoli
              .Include(Articolo => Articolo.Categoria)
              .Include(Articolo => Articolo.Autore)
@@ -94,14 +122,24 @@ namespace GiornaleOnline.Controllers
         [HttpPost]
         public async Task<ActionResult<ArticoloModel>> Add(ArticoloDTO item)
         {
+            // this è il nostor controller ma sicoome dervia da controller base allora ha anche una prprietà user evinta dalla richiesta http 
+            //e possima cerca di esso i claim , nel nostro user avevamo messo che aveva i claim UserId
+            var userIdClaim = this.User.FindFirst("UserId");
+            if (userIdClaim == null)
+            {
+                return BadRequest();
+            }
+            var userId = Convert.ToInt32(userIdClaim.Value);
 
+           
             var categoria = await _dc.Categorie.FindAsync(item.CategoriaId);
             if (categoria == null)
             {
                 return Problem("Categoria non trovata , ", statusCode: StatusCodes.Status400BadRequest);
             }
 
-            var autore = await _dc.Utenti.FindAsync(item.AutoreId);
+            var autore = await _dc.Utenti.FindAsync(userId); // per inserire l'autore non prendo l'autore contenuto nel token 
+
             if (autore == null)
             {
                 return Problem("Categoria non trovata , ", statusCode: StatusCodes.Status400BadRequest);
@@ -133,22 +171,36 @@ namespace GiornaleOnline.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<ArticoloModel>> Update(int id, ArticoloDTO item)
         {
+            // this è il nostor controller ma sicoome dervia da controller base allora ha anche una prprietà user evinta dalla richiesta http 
+            //e possima cerca di esso i claim , nel nostro user avevamo messo che aveva i claim UserId
+            var userIdClaim = this.User.FindFirst("UserId");
+            if (userIdClaim == null)
+            {
+                return BadRequest();
+            }
+            var userId = Convert.ToInt32(userIdClaim.Value);
 
             var articolo = await _dc.Articoli.FindAsync(id);
             if (articolo == null)
             {
                 return NotFound();
             }
+
+            if (articolo.Autore.Id != userId)
+            {
+                return Unauthorized();
+            }
+
             var categoria = await _dc.Categorie.FindAsync(item.CategoriaId);
             if (categoria == null)
             {
                 return Problem("Categoria non trovata , ", statusCode: StatusCodes.Status400BadRequest);
             }
 
-            var autore = await _dc.Utenti.FindAsync(item.AutoreId);
+            var autore = await _dc.Utenti.FindAsync(userId);
             if (autore == null)
             {
-                return Problem("Categoria non trovata , ", statusCode: StatusCodes.Status400BadRequest);
+                return Problem("Autore non trovato , ", statusCode: StatusCodes.Status400BadRequest);
             }
 
             articolo.Titolo = item.Titolo;
