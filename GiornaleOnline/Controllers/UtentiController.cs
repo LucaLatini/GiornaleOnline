@@ -49,7 +49,16 @@ namespace GiornaleOnline.Controllers
                     new Claim("Username" , utente.Username!)
                 };
 
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+                if(utente.Username =="admin")
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, "admin"));
+                }
+                else
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, "user"));
+                }
+
+                    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
                 var signIn = new SigningCredentials(key , SecurityAlgorithms.HmacSha256);
                 var token = new JwtSecurityToken(
                     _config["Jwt:Issuer"],

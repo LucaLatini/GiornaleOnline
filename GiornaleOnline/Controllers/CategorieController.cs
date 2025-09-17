@@ -2,6 +2,7 @@
 using GiornaleOnline.DataContext.Models;
 using GiornaleOnline.Extensions;
 using GiornaleOnline.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace GiornaleOnline.Controllers
 {
     [Route("[controller]")]
     [ApiController]
+    [Authorize(Roles ="admin")] //I RUOLI LI TROVO ALL'INTERNO DEL TOKEN
     public class CategorieController : ControllerBase
     {
         private readonly ILogger<CategorieController> _logger;
