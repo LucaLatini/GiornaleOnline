@@ -1,4 +1,5 @@
 ﻿using GiornaleOnline.DataContext;
+using GiornaleOnline.DataContext.Models;
 using GiornaleOnline.Extensions;
 using GiornaleOnline.Models;
 using Microsoft.AspNetCore.Http;
@@ -70,6 +71,36 @@ namespace GiornaleOnline.Controllers
             {
                 return BadRequest("credenziali non valide");
             }
+        }
+        [HttpPost("Register")]
+        public  async Task<ActionResult<UtenteModel>> Register(RegisterDTO item)
+        {
+            var utente = new Utente
+            {
+                Nome = item.Nome,
+                Username = item.Username,
+                Password = item.Password,
+            };
+
+            try
+            {
+                _dc.Utenti.Add(utente);
+                await _dc.SaveChangesAsync();
+
+            }
+            catch (Exception ex) { 
+            
+                _logger.LogError(ex.InnerException?.Message);
+                return Problem(ex.InnerException?.Message);
+            
+            }
+
+            return CreatedAtAction(
+                nameof(Register),
+                new { id = utente.Id },
+                utente.ToUtenteModel()
+                );
+
         }
     }
 }
