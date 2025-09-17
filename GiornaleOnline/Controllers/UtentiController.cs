@@ -1,7 +1,8 @@
-﻿using GiornaleOnline.DataContext;
+﻿
+using GiornaleOnline.Models;
+using GiornaleOnline.DataContext;
 using GiornaleOnline.DataContext.Models;
 using GiornaleOnline.Extensions;
-using GiornaleOnline.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
